@@ -1,0 +1,62 @@
+#!/bin/bash
+
+helpcmd() {
+    echo "Usage: $(basename "$0") [OPTIONS] [FILE...]"
+    echo ""
+    echo "Options:"
+    echo "  -c, --countlines    Count the lines in the specified file(s)"
+    echo "  -s, --sort          Output unique sorted lines from the file(s)"
+    echo "  -h, --help          Show this help message and exit"
+    echo ""
+    echo "Examples:"
+    echo "  $(basename "$0") -c file.txt"
+    echo "  $(basename "$0") --sort file.txt"
+    exit 0
+}
+
+ACTION=""
+FILES=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            helpcmd
+            ;;
+        -c|--countlines)
+            ACTION="count"
+            shift
+            ;;
+        -s|--sort)
+            ACTION="sort"
+            shift
+            ;;
+        -*)
+            echo "Invalid option: $1" >&2
+            echo "Use -h or --help for usage information." >&2
+            exit 1
+            ;;
+        *)
+            FILES+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [ ${#FILES[@]} -eq 0 ]; then
+    echo "No file provided!" >&2
+    echo "Use -h or --help for usage information." >&2
+    exit 1
+fi
+
+case "$ACTION" in
+    "count")
+        wc -l "${FILES[@]}" | sed ':a;s/\(^\|[^0-9]\)\([0-9]\+\)\([0-9]\{3\}\)/\1\2,\3/;ta'
+        ;;
+    "sort")
+        sort -u "${FILES[@]}"
+        ;;
+    *)
+        echo "Use -h or --help for usage information." >&2
+        exit 1
+        ;;
+esac
